@@ -56,7 +56,7 @@ v0.1 (1D powertrain):
 | `Chassis`        | `velocity`                      | `F_resist`, `position`                                             |
 | `Encoder`        | `omega`                         | `count`, `omega_measured`                                          |
 
-v0.2 (2D dynamics):
+v0.2 (2D dynamics — Ackermann racing car):
 
 | Block            | Inputs                          | Outputs                                                            |
 |------------------|---------------------------------|--------------------------------------------------------------------|
@@ -66,7 +66,16 @@ v0.2 (2D dynamics):
 | `PathFollower`   | `x`, `y`, `theta`, `v`          | `steering_command`                                                 |
 | `LapTimer`       | `s_progress`                    | `lap_count`, `current_lap_time`, `last_lap_time`, `best_lap_time`  |
 
-`Chassis2D` coexists with the 1D `Chassis` — pick whichever fits the
+v0.2 (skid-steer rover):
+
+| Block                  | Inputs                                  | Outputs                                                                  |
+|------------------------|-----------------------------------------|--------------------------------------------------------------------------|
+| `DifferentialChassis`  | `velocity_left`, `velocity_right`       | `F_resist_left`, `F_resist_right`, `velocity`, `yaw_rate`, `x`, `y`, `theta` |
+| `DiffDriveMixer`       | `throttle`, `steering`                  | `command_left`, `command_right`                                          |
+| `PowerMeter`           | `voltage`, `current`                    | `power`, `energy`                                                        |
+
+`Chassis2D` coexists with the 1D `Chassis`; `DifferentialChassis` is a
+parallel option for skid-steer vehicles — pick whichever fits the
 demo. `Track` is also a regular Python object exposing
 `from_toml(path)`, `length`, `project(x, y)`, and `lookahead_point(x, y, d)`
 so `PathFollower` (and your own blocks) can query it imperatively.
@@ -88,10 +97,13 @@ you actually have.
 pip install matplotlib
 python examples/racing_car.py    # 1D velocity-loop demo (v0.1)
 python examples/racing_lap.py    # 2D figure-8 with pure-pursuit (v0.2)
+python examples/mars_rover.py    # skid-steer rover, scored on precision + energy
 ```
 
-You'll get a console summary and `examples/racing_car.png` /
-`examples/racing_lap.png`.
+You'll get a console summary and a `*.png` next to each script.
+`racing_lap.py` optimises for lap time; `mars_rover.py` deliberately
+flips the objective — slow target speed, the score sheet reports
+RMS lateral error (mm) and total electrical energy (J).
 
 ### Defining a track
 
@@ -174,14 +186,18 @@ xdesigner_project/
 │       ├── dc_motor.py
 │       ├── chassis.py
 │       ├── encoder.py
-│       ├── chassis2d.py        # v0.2
+│       ├── chassis2d.py        # v0.2 (Ackermann)
 │       ├── steering.py         # v0.2
 │       ├── track.py            # v0.2
 │       ├── path_follower.py    # v0.2 (pure pursuit)
-│       └── lap_timer.py        # v0.2
+│       ├── lap_timer.py        # v0.2
+│       ├── differential_chassis.py  # v0.2 (skid-steer)
+│       ├── diff_drive_mixer.py      # v0.2
+│       └── power_meter.py           # v0.2
 └── examples/
     ├── racing_car.py           # v0.1 demo
-    ├── racing_lap.py           # v0.2 demo
+    ├── racing_lap.py           # v0.2 demo (Ackermann racing car)
+    ├── mars_rover.py           # v0.2 demo (skid-steer rover)
     └── tracks/
         ├── _generate.py        # writes figure8.toml
         └── figure8.toml

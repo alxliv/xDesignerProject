@@ -17,6 +17,8 @@ motor** (12 V, 1:30 reduction, 333 RPM output, 11 PPR Hall encoder,
 
 **v0.2 (new):** 2D dynamics on top of the same simulator.
 
+Ackermann-steering family:
+
 * `Chassis2D` — kinematic-bicycle chassis (no slip), x/y/θ pose,
   same `F_resist` contract as 1D `Chassis` so motor wiring is identical.
 * `Steering` — normalised command → steering angle, with saturation
@@ -31,9 +33,24 @@ motor** (12 V, 1:30 reduction, 333 RPM output, 11 PPR Hall encoder,
 * `LapTimer` — wraps `s_progress` to count laps and track best/last
   lap times, with a `min_lap_time` guard against double-counting.
 
-**Demo:** `examples/racing_lap.py` drives a Bernoulli-lemniscate
-figure-8 (≈6.28 m perimeter) at 0.7 m/s. Acceptance numbers from the
-latest run:
+Skid-steer family (added later in v0.2):
+
+* `DifferentialChassis` — two independent wheel-velocity inputs,
+  derives `v = (vL+vR)/2` and `yaw_rate = (vR−vL)/T`, integrates
+  pose. Splits longitudinal resistance per wheel and adds a
+  **scrub** term proportional to `|yaw_rate|` so turning in place
+  costs real energy. This is what makes "least power wins" meaningful.
+* `DiffDriveMixer` — arcade-drive balancer:
+  `cmd_L = throttle − k·steering`, `cmd_R = throttle + k·steering`,
+  each clamped to [−1, +1]. This is the Pico-side software that
+  translates a single steering command into per-wheel commands.
+* `PowerMeter` — `V·I → power, ∫|V·I|dt → energy`. One per motor;
+  the demo sums them to score "total energy spent".
+
+**Demos.** Two examples that share the same figure-8 track but model
+different vehicles with different objectives:
+
+`examples/racing_lap.py` — Ackermann racing car, optimised for lap time.
 
 | | result |
 |---|---|
@@ -43,13 +60,26 @@ latest run:
 | lateral error (RMS / peak) | 9.6 mm / 12.4 mm |
 | peak steering | 21° (δ_max = 30°) |
 
+`examples/mars_rover.py` — skid-steer rover, scored on precision +
+economy (lap time is secondary; speed is deliberately slow).
+
+| | result |
+|---|---|
+| target speed | 0.30 m/s |
+| laps in 60 s | 2 (≈ 20 s/lap) |
+| distance travelled | 17.84 m |
+| lateral error (RMS / peak) | 18.0 mm / 30.7 mm |
+| total electrical energy | 153.3 J (≈ 8.6 J/m) |
+
 **Verify it all runs:**
 ```bash
 pip install matplotlib
 python examples/racing_car.py    # v0.1 regression
-python examples/racing_lap.py    # v0.2 demo
+python examples/racing_lap.py    # v0.2 racing-car demo
+python examples/mars_rover.py    # v0.2 skid-steer demo
 ```
-Outputs `racing_car.png` and `racing_lap.png` in `examples/`.
+Outputs `racing_car.png`, `racing_lap.png`, and `mars_rover.png` in
+`examples/`.
 
 ## Architectural choice still pending
 
@@ -88,10 +118,11 @@ xdesigner_project/
 ├── xDesigner/
 │   ├── block.py           ← Block, Port
 │   ├── simulator.py       ← step loop, connections, probes
-│   └── blocks/            ← 6 v0.1 blocks + 5 v0.2 blocks
+│   └── blocks/            ← 6 v0.1 blocks + 8 v0.2 blocks
 └── examples/
     ├── racing_car.py      ← v0.1 demo (regression check)
-    ├── racing_lap.py      ← v0.2 demo (figure-8 + pure pursuit)
+    ├── racing_lap.py      ← v0.2 Ackermann racing-car demo
+    ├── mars_rover.py      ← v0.2 skid-steer rover demo
     └── tracks/
         ├── _generate.py
         └── figure8.toml
