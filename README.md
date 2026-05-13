@@ -56,7 +56,7 @@ v0.1 (1D powertrain):
 | `Chassis`        | `velocity`                      | `F_resist`, `position`                                             |
 | `Encoder`        | `omega`                         | `count`, `omega_measured`                                          |
 
-v0.2 (2D dynamics — Ackermann racing car):
+v0.2 (2D dynamics — bicycle-steering racing car):
 
 | Block            | Inputs                          | Outputs                                                            |
 |------------------|---------------------------------|--------------------------------------------------------------------|
@@ -186,7 +186,7 @@ xdesigner_project/
 │       ├── dc_motor.py
 │       ├── chassis.py
 │       ├── encoder.py
-│       ├── chassis2d.py        # v0.2 (Ackermann)
+│       ├── chassis2d.py        # v0.2 (kinematic bicycle)
 │       ├── steering.py         # v0.2
 │       ├── track.py            # v0.2
 │       ├── path_follower.py    # v0.2 (pure pursuit)
@@ -196,7 +196,7 @@ xdesigner_project/
 │       └── power_meter.py           # v0.2
 └── examples/
     ├── racing_car.py           # v0.1 demo
-    ├── racing_lap.py           # v0.2 demo (Ackermann racing car)
+    ├── racing_lap.py           # v0.2 demo (bicycle-steering racing car)
     ├── mars_rover.py           # v0.2 demo (skid-steer rover)
     └── tracks/
         ├── _generate.py        # writes figure8.toml

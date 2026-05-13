@@ -3,8 +3,8 @@
 A small two-wheel skid-steer rover follows the same figure-8 track as
 ``racing_lap.py`` but with very different priorities:
 
-* No Ackermann steering. Two independently driven front wheels, mixed
-  in software by a ``DiffDriveMixer`` running on the Pico.
+* No bicycle-style steering linkage. Two independently driven front
+  wheels, mixed in software by a ``DiffDriveMixer`` running on the Pico.
 * Slow target speed (0.3 m/s). The score is **not** lap time.
 * Two figures of merit:
     - **precision** : RMS lateral error on the centerline (smaller is better)

@@ -17,7 +17,7 @@ motor** (12 V, 1:30 reduction, 333 RPM output, 11 PPR Hall encoder,
 
 **v0.2 (new):** 2D dynamics on top of the same simulator.
 
-Ackermann-steering family:
+Bicycle-steering family:
 
 * `Chassis2D` — kinematic-bicycle chassis (no slip), x/y/θ pose,
   same `F_resist` contract as 1D `Chassis` so motor wiring is identical.
@@ -50,7 +50,7 @@ Skid-steer family (added later in v0.2):
 **Demos.** Two examples that share the same figure-8 track but model
 different vehicles with different objectives:
 
-`examples/racing_lap.py` — Ackermann racing car, optimised for lap time.
+`examples/racing_lap.py` — bicycle-steering racing car, optimised for lap time.
 
 | | result |
 |---|---|
@@ -121,7 +121,7 @@ xdesigner_project/
 │   └── blocks/            ← 6 v0.1 blocks + 8 v0.2 blocks
 └── examples/
     ├── racing_car.py      ← v0.1 demo (regression check)
-    ├── racing_lap.py      ← v0.2 Ackermann racing-car demo
+    ├── racing_lap.py      ← v0.2 bicycle-steering racing-car demo
     ├── mars_rover.py      ← v0.2 skid-steer rover demo
     └── tracks/
         ├── _generate.py
