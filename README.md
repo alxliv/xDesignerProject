@@ -5,9 +5,11 @@ A tiny Simulink-style simulation platform for small robotic devices
 The first deliverable target is a small racing car driven by a
 Yahboom 520 motor + Raspberry Pi Pico 2W.
 
-This is **v0.1** — the bones, not the body. It defines the block
-abstraction, a step-based simulator, six standard blocks, and one
-worked example (PID velocity loop on a 1D car).
+This is **v0.2**. v0.1 was the bones — block abstraction, step-based
+simulator, six 1D blocks, and a velocity-loop demo. v0.2 adds 2D
+dynamics: a kinematic-bicycle chassis, a steering actuator, a
+TOML-defined track with centerline projection, a pure-pursuit path
+follower, and a lap timer. The new demo drives a figure-8 closed track.
 
 ---
 
@@ -43,6 +45,8 @@ SignalSource ─► PIDController ─► MotorDriver ─► DCMotor ─► Chass
 
 ## Built-in blocks
 
+v0.1 (1D powertrain):
+
 | Block            | Inputs                          | Outputs                                                            |
 |------------------|---------------------------------|--------------------------------------------------------------------|
 | `SignalSource`   | —                               | `value`                                                            |
@@ -51,6 +55,21 @@ SignalSource ─► PIDController ─► MotorDriver ─► DCMotor ─► Chass
 | `DCMotor`        | `voltage`, `F_resist`           | `omega_motor`, `omega_out`, `current`, `torque`, `velocity`        |
 | `Chassis`        | `velocity`                      | `F_resist`, `position`                                             |
 | `Encoder`        | `omega`                         | `count`, `omega_measured`                                          |
+
+v0.2 (2D dynamics):
+
+| Block            | Inputs                          | Outputs                                                            |
+|------------------|---------------------------------|--------------------------------------------------------------------|
+| `Chassis2D`      | `velocity`, `delta`             | `F_resist`, `x`, `y`, `theta`, `yaw_rate`                          |
+| `Steering`       | `command`                       | `delta`                                                            |
+| `Track`          | `x`, `y`                        | `s_progress`, `lateral_error`, `heading_ref`, `curvature`          |
+| `PathFollower`   | `x`, `y`, `theta`, `v`          | `steering_command`                                                 |
+| `LapTimer`       | `s_progress`                    | `lap_count`, `current_lap_time`, `last_lap_time`, `best_lap_time`  |
+
+`Chassis2D` coexists with the 1D `Chassis` — pick whichever fits the
+demo. `Track` is also a regular Python object exposing
+`from_toml(path)`, `length`, `project(x, y)`, and `lookahead_point(x, y, d)`
+so `PathFollower` (and your own blocks) can query it imperatively.
 
 Defaults for `DCMotor` match a Yahboom 520 at 12 V with 1:30 reduction
 and a 65 mm wheel — change them in your script to model the variant
@@ -67,10 +86,30 @@ you actually have.
 
 ```bash
 pip install matplotlib
-python examples/racing_car.py
+python examples/racing_car.py    # 1D velocity-loop demo (v0.1)
+python examples/racing_lap.py    # 2D figure-8 with pure-pursuit (v0.2)
 ```
 
-You'll get a console summary and `examples/racing_car.png`.
+You'll get a console summary and `examples/racing_car.png` /
+`examples/racing_lap.png`.
+
+### Defining a track
+
+Tracks are TOML files under `examples/tracks/`:
+
+```toml
+name = "figure-8"
+closed = true
+waypoints = [
+    [1.199, 0.063],
+    [1.190, 0.187],
+    ...
+]
+```
+
+`examples/tracks/_generate.py` produces `figure8.toml` by sampling a
+Bernoulli lemniscate; tweak the parameters and re-run to get a different
+shape, or hand-write a TOML for a custom course.
 
 ### Minimal script
 
@@ -125,7 +164,7 @@ point for the AI elements you're planning.
 
 ```
 xdesigner_project/
-├── xdesigner/
+├── xDesigner/
 │   ├── block.py            # Block, Port
 │   ├── simulator.py        # Simulator (step loop, connections, probes)
 │   └── blocks/
@@ -134,9 +173,18 @@ xdesigner_project/
 │       ├── motor_driver.py
 │       ├── dc_motor.py
 │       ├── chassis.py
-│       └── encoder.py
+│       ├── encoder.py
+│       ├── chassis2d.py        # v0.2
+│       ├── steering.py         # v0.2
+│       ├── track.py            # v0.2
+│       ├── path_follower.py    # v0.2 (pure pursuit)
+│       └── lap_timer.py        # v0.2
 └── examples/
-    └── racing_car.py
+    ├── racing_car.py           # v0.1 demo
+    ├── racing_lap.py           # v0.2 demo
+    └── tracks/
+        ├── _generate.py        # writes figure8.toml
+        └── figure8.toml
 ```
 
 ## Sanity check from the demo run
@@ -152,24 +200,17 @@ xdesigner_project/
 
 ## What's next (in roughly increasing effort)
 
-1. **More signal sources / inputs** — joystick / log-file replay
-   block for closed-loop sim from recorded data.
-2. **2D chassis** — Ackermann steering, lateral dynamics, so the car
-   can actually race a track. Adds a `Steering` block and an `(x, y, θ)`
-   chassis.
-3. **Sensor blocks** — IMU, distance sensor (HC-SR04 / ToF), line
+1. **Dynamic bicycle** — replace the kinematic `Chassis2D` with a
+   lateral-grip model (slip angles, cornering stiffness) so tire limits
+   bite. Drop-in: same ports.
+2. **Sensor blocks** — IMU, distance sensor (HC-SR04 / ToF), line
    sensor — each with realistic noise and update rate.
-4. **Reference tracker / track model** — a road-centerline + lap
-   timer.
-5. **AI controller block** — a wrapper around an MLP or small RL
-   policy that exposes the same `setpoint, measurement → command`
-   interface as PID.
-6. **Hardware-in-the-loop bridge** — same block graph drives a
+3. **AI controller block** — a wrapper around an MLP or small RL
+   policy that exposes the same `(x, y, theta, v) → steering_command`
+   interface as `PathFollower`. Imitation-learn pure pursuit first,
+   then RL on lap time.
+4. **Hardware-in-the-loop bridge** — same block graph drives a
    simulator *or* a Pico over USB serial. The block descriptions
    become the firmware spec.
-7. **Optional GUI** — block-diagram editor on top of the existing
-   API. Out of scope for v0.1.
-
-Open question for you: what should drive priorities for v0.2 — 2D
-dynamics so the car can corner, or the AI-controller block on the
-existing 1D loop?
+5. **Optional GUI** — block-diagram editor on top of the existing
+   API.
