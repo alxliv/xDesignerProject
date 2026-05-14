@@ -105,6 +105,18 @@ You'll get a console summary and a `*.png` next to each script.
 flips the objective — slow target speed, the score sheet reports
 RMS lateral error (mm) and total electrical energy (J).
 
+### Running the tests
+
+```bash
+pip install pytest
+python -m pytest tests/
+```
+
+The suite covers the simulator loop, PID anti-windup, the analytic
+electrical motor step, `Track` projection (including the figure-8
+crossing), `LapTimer` wrap detection, the diff-drive mixer, and both
+chassis kinematics. ~50 tests, runs in under a second.
+
 ### Defining a track
 
 Tracks are TOML files under `examples/tracks/`:

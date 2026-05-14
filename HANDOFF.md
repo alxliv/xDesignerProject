@@ -107,8 +107,25 @@ AI policy non-trivial.
 ## Open quick wins (~1 hr each, independent)
 - `Battery` block — voltage sag vs. current (so duty-cycle math reflects real bus voltage).
 - `DistanceSensor` / `BumpSensor` blocks with realistic noise + update rates.
-- `pytest` suite covering at least: analytic electrical step, PID saturation/anti-windup, `Track.project` near the figure-8 crossing, `LapTimer` wrap detection.
 - More tracks: a fast oval or a road-course TOML to exercise different curvature regimes.
+
+## Test suite (added late in v0.2)
+
+52 pytest tests under `tests/`, runs in ~0.5 s:
+
+| file | coverage |
+|---|---|
+| `test_simulator.py` | dt validation, port-kind checks, forward propagation, 1-sample feedback delay, reset, probe lookup |
+| `test_pid.py` | proportional response, integral accumulation, anti-windup hold and unwind, derivative filter |
+| `test_dc_motor.py` | locked-rotor short-circuit current, large-dt robustness, no-load top speed from back-EMF balance, decay-to-rest |
+| `test_track.py` | TOML load, unit-square geometry, sign convention, lookahead walking + wraparound, figure-8 crossing-segment hint |
+| `test_lap_timer.py` | wrap detection, `min_lap_time` guard against spurious wraps, best-lap tracking |
+| `test_diff_drive_mixer.py` | zero-steering passthrough, sign convention, saturation trading throttle for yaw, input clamping |
+| `test_chassis_kinematics.py` | bicycle straight-line + closed-circle radius + yaw-rate formula; diff-drive equal-wheel straight, in-place rotation, scrub penalty |
+
+No bugs were found in production code during the write-up — the
+tests are regression cover, not bug-finding. They unblock the next
+refactor (dynamic bicycle, or the ports refactor).
 
 ## Repo layout
 ```
