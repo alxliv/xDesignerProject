@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Default to PICO_BOARD=pico (RP2040). Override on the cmake command
 # line with -DPICO_BOARD=pico2 for the Pico 2 / RP2350.
 if(NOT DEFINED PICO_BOARD)
-    set(PICO_BOARD pico)
+    set(PICO_BOARD pico2)
 endif()
 
 pico_sdk_init()
