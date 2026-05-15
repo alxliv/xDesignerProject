@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "comms-bench/firmware/bridge_echo"
+		}
+	],
+	"settings": {}
+}

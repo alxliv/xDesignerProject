@@ -26,10 +26,10 @@
 #define LED_PIN PICO_DEFAULT_LED_PIN
 
 int main(void) {
-    /* stdio_init_all() brings up tinyusb's CDC interface as a side-effect
-     * of enabling stdio_usb. We then talk to it directly through the
-     * tud_cdc_* API for binary IO. */
-    stdio_init_all();
+    /* We own the USB stack directly (no pico_stdio_usb) so the latency
+     * bench sees the bare TinyUSB CDC path. tusb_init() boots the device
+     * stack; tud_task() then has to be pumped from the main loop. */
+    tusb_init();
 
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);

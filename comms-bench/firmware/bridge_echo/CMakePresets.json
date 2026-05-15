@@ -1,0 +1,38 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "pico",
+      "inherits": "base",
+      "displayName": "Pico (RP2040)",
+      "cacheVariables": { "PICO_BOARD": "pico" }
+    },
+    {
+      "name": "pico2",
+      "inherits": "base",
+      "displayName": "Pico 2 (RP2350, ARM)",
+      "cacheVariables": { "PICO_BOARD": "pico2" }
+    },
+    {
+      "name": "pico2-debug",
+      "inherits": "pico2",
+      "displayName": "Pico 2 (RP2350, ARM) — Debug",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "pico",        "configurePreset": "pico" },
+    { "name": "pico2",       "configurePreset": "pico2" },
+    { "name": "pico2-debug", "configurePreset": "pico2-debug" }
+  ]
+}
